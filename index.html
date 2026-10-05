@@ -136,6 +136,25 @@ function clearAIHistory(){
  aiMessages=[];
  localStorage.removeItem("jarvis_mk3_ai_history");
 }
+ let selectedVisionImage = null;
+
+visionInput.addEventListener("change", async () => {
+  const file = visionInput.files[0];
+
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    selectedVisionImage = reader.result;
+
+    $("brain").textContent = "VISION READY";
+
+    speak("Image received, sir. What would you like me to look for?");
+  };
+
+  reader.readAsDataURL(file);
+});
 async function askAI(text){
  $("brain").textContent="THINKING";
  setMode("PROCESSING");
