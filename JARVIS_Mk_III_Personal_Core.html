@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JARVIS Mk III — Personal Core</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#03070c;color:#00d9ff;font-family:Arial,sans-serif;min-height:100vh;display:flex;justify-content:center;align-items:center}
+main{width:min(920px,94vw);text-align:center;padding:22px}.title{font-size:clamp(38px,8vw,76px);letter-spacing:12px;text-shadow:0 0 18px #00d9ff;margin:5px 0}.sub{opacity:.7;letter-spacing:3px}
+.reactor{width:230px;height:230px;margin:28px auto;position:relative;border:2px solid #00d9ff;border-radius:50%;box-shadow:0 0 35px #00d9ff55,inset 0 0 35px #00d9ff33;display:grid;place-items:center}
+.ring{position:absolute;border:1px solid #00d9ff99;border-radius:50%;inset:16px;animation:spin 7s linear infinite}.r2{inset:35px;animation-duration:4s;animation-direction:reverse}.r3{inset:55px;animation-duration:2.5s}
+.core{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;font-size:42px;font-weight:bold;background:#001a22;box-shadow:0 0 35px #00d9ff}
+@keyframes spin{to{transform:rotate(360deg)}}
+button{background:#00151d;color:#00d9ff;border:1px solid #00d9ff;border-radius:8px;padding:12px 18px;margin:5px;cursor:pointer;box-shadow:0 0 12px #00d9ff33}button:hover{box-shadow:0 0 20px #00d9ff88}
+#out{min-height:60px;margin:15px auto;padding:14px;border:1px solid #00d9ff55;border-radius:10px;background:#001019;text-align:left}
+.panel{margin-top:14px;padding:15px;border:1px solid #00d9ff44;border-radius:10px;text-align:left}.panel h3{margin-top:0}
+input,textarea{width:100%;background:#02080d;color:#bff8ff;border:1px solid #00d9ff55;border-radius:7px;padding:10px;margin:5px 0}textarea{min-height:80px}
+small{opacity:.65}.hidden{display:none}.status{font-size:13px;opacity:.75}
+</style>
+</head>
+<body>
+<main>
+<div class="sub">PERSONAL INTELLIGENCE SYSTEM</div>
+<div class="title">JARVIS</div>
+<div class="sub">MK III • PERSONAL CORE</div>
+<div class="reactor"><div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div><div class="core">J</div></div>
+
+<button id="activate">🎙️ ACTIVATE</button>
+<button id="wake">👂 WAKE WORD</button>
+<button id="vision">📷 VISION</button>
+<button id="memories">🧠 MEMORY</button>
+<button id="profile">👤 PERSONAL CORE</button>
+<input id="image" type="file" accept="image/*" hidden>
+
+<div id="out">SYSTEM STANDBY</div>
+<div class="status" id="status">Initializing personal core…</div>
+
+<section id="profilePanel" class="panel hidden">
+<h3>👤 Your Personal Core</h3>
+<small>This stays in this browser unless you send it to your AI backend.</small>
+<input id="pName" placeholder="What should JARVIS call you?">
+<input id="pStyle" placeholder="How should JARVIS speak to you? e.g. concise, friendly, technical">
+<textarea id="pAbout" placeholder="Things JARVIS should know about you, your interests, projects, goals, preferences…"></textarea>
+<textarea id="pProject" placeholder="Current project context — e.g. Mk III features, what is working, what you want next"></textarea>
+<button id="saveProfile">SAVE PERSONAL CORE</button>
+<button id="clearProfile">CLEAR PROFILE</button>
+</section>
+
+<section id="memoryPanel" class="panel hidden">
+<h3>🧠 Long-Term Memory</h3>
+<input id="memoryInput" placeholder="Tell JARVIS something to remember">
+<button id="saveMemory">REMEMBER</button>
+<button id="showMemory">SHOW MEMORIES</button>
+<button id="clearMemory">CLEAR MEMORIES</button>
+<div id="memoryList"></div>
+</section>
+</main>
+
+<script>
+const API="https://jarvis-backend-phi-bay.vercel.app/api/chat";
+const $=id=>document.getElementById(id);
+const say=t=>{ $("out").textContent=t; try{speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="en-GB";u.rate=.84;u.pitch=.70;speechSynthesis.speak(u)}catch(e){} };
+const profileKey="jarvis_mk3_personal_core",memKey="jarvis_mk3_personal_memories",histKey="jarvis_mk3_ai_history";
+let profile=JSON.parse(localStorage.getItem(profileKey)||"{}");
+let memories=JSON.parse(localStorage.getItem(memKey)||"[]");
+let history=JSON.parse(localStorage.getItem(histKey)||"[]");
+let imageData=null;
+
+function save(){localStorage.setItem(profileKey,JSON.stringify(profile));localStorage.setItem(memKey,JSON.stringify(memories));localStorage.setItem(histKey,JSON.stringify(history))}
+function context(){
+ return `PERSONAL CORE:
+Name: ${profile.name||"not set"}
+Communication style: ${profile.style||"natural"}
+About user: ${profile.about||"not set"}
+Current project: ${profile.project||"JARVIS Mk III"}
+Long-term memories: ${memories.join(" | ")||"none"}
+
+IMPORTANT: Treat this as user-provided personal context. Use it naturally, don't invent facts, and don't claim to remember something that isn't here.`;
+}
+function openPanel(id){$(id).classList.toggle("hidden")}
+$("profile").onclick=()=>{openPanel("profilePanel");$("pName").value=profile.name||"";$("pStyle").value=profile.style||"";$("pAbout").value=profile.about||"";$("pProject").value=profile.project||""};
+$("memories").onclick=()=>openPanel("memoryPanel");
+$("saveProfile").onclick=()=>{profile={name:$("pName").value.trim(),style:$("pStyle").value.trim(),about:$("pAbout").value.trim(),project:$("pProject").value.trim()};save();say("Personal core updated, sir.");};
+$("clearProfile").onclick=()=>{profile={};save();say("Personal core cleared.");};
+$("saveMemory").onclick=()=>{let x=$("memoryInput").value.trim();if(x){memories.push(x);memories=memories.slice(-100);save();$("memoryInput").value="";say("I will keep that in your local memory.");}};
+$("showMemory").onclick=()=>{$("memoryList").innerHTML=memories.length?memories.map((m,i)=>`<div>${i+1}. ${m}</div>`).join(""):"No memories stored."};
+$("clearMemory").onclick=()=>{memories=[];save();$("memoryList").textContent="Memory cleared."};
+
+async function askAI(text,img=null){
+ $("status").textContent="THINKING…";
+ let msgs=[{role:"system",content:`You are JARVIS Mk III, a personal assistant. Be intelligent, warm, concise, and natural. Address the user as sir when appropriate, but don't overdo it. Use the PERSONAL CORE below to personalize responses. Never invent personal facts. If the user asks about the JARVIS project, use the project context. You may say you cannot perform an action if the browser/backend cannot actually do it.
+${context()}`}];
+ msgs.push(...history.slice(-10));
+ msgs.push({role:"user",content:text});
+ try{
+  let r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:msgs,image:img})});
+  let d=await r.json(); if(!r.ok) throw Error(d.error||"Backend error");
+  let reply=d.reply||"I didn't receive a response.";
+  history.push({role:"user",content:text},{role:"assistant",content:reply});history=history.slice(-20);save();say(reply);
+ }catch(e){say("I couldn't reach my AI brain right now, sir. The local systems are still available.");$("status").textContent="AI OFFLINE";}
+ $("status").textContent="READY";
+}
+
+function calc(t){
+ try{
+  let s=t.toLowerCase().replace(/square root of/g,"sqrt ").replace(/divided by/g,"/").replace(/multiplied by|times/g,"*").replace(/plus/g,"+").replace(/minus/g,"-").replace(/sqrt\s+([0-9.]+)/g,"Math.sqrt($1)").replace(/\^/g,"**").replace(/[^0-9+\-*/().%\s*]/g,"");
+  if(!s||!/^[0-9+\-*/().%\s*]+$/.test(s.replace(/Math.sqrt\([^)]*\)/g,""))) return null;
+  let r=Function('"use strict";return ('+s.replace(/%/g,"/100")+')')();
+  return Number.isFinite(r)?String(r):null;
+ }catch{return null}
+}
+function localCommand(t){
+ let l=t.toLowerCase().trim(), c=calc(l);
+ if(c!==null)return "The answer is "+c;
+ if(/^(hi|hello|hey)\b/.test(l))return profile.name?`Good to hear from you, ${profile.name}.`:"Good to hear from you, sir.";
+ if(l.includes("what is my name"))return profile.name?`You asked me to call you ${profile.name}.`:"You haven't set your name yet.";
+ if(l.includes("what do you remember"))return memories.length?memories.join("; "):"I don't have any stored memories yet.";
+ if(l.includes("what can you do"))return "I can talk, remember information locally, calculate, search the web, use vision, and use my AI brain.";
+ if(l.includes("what time"))return new Date().toLocaleTimeString();
+ if(l.includes("what date")||l==="date")return new Date().toLocaleDateString();
+ if(l.includes("tell me a joke"))return ["Why did the computer get cold? It left its Windows open.","Why was the math book sad? It had too many problems."][Math.floor(Math.random()*2)];
+ if(l.startsWith("search google for ")){location.href="https://www.google.com/search?q="+encodeURIComponent(l.slice(18));return "Opening Google."}
+ if(l.startsWith("search youtube for ")){location.href="https://www.youtube.com/results?search_query="+encodeURIComponent(l.slice(19));return "Opening YouTube."}
+ if(l.startsWith("remember that ")){let x=t.slice(14).trim();memories.push(x);save();return "Stored in local memory."}
+ return null;
+}
+async function run(t){let x=localCommand(t);if(x){say(x);return}await askAI(t,imageData);imageData=null}
+
+let recognition;
+if("webkitSpeechRecognition"in window||"SpeechRecognition"in window){
+ const R=window.SpeechRecognition||window.webkitSpeechRecognition;
+ recognition=new R();recognition.lang="en-IN";recognition.interimResults=false;
+ recognition.onstart=()=>{$("status").textContent="LISTENING…"};
+ recognition.onresult=e=>{let t=e.results[0][0].transcript;say("I heard: "+t);run(t)};
+ recognition.onerror=()=>{$("status").textContent="READY"};
+ recognition.onend=()=>{$("status").textContent="READY"};
+}
+$("activate").onclick=()=>{if(recognition)recognition.start();else say("Speech recognition is not supported in this browser.")};
+let wakeOn=false;
+$("wake").onclick=()=>{wakeOn=!wakeOn;$("wake").textContent=wakeOn?"🛑 WAKE ACTIVE":"👂 WAKE WORD";if(!recognition||!wakeOn)return;say("Wake word mode activated.");listenWake()};
+function listenWake(){
+ if(!wakeOn)return;
+ try{recognition.start()}catch{}
+ recognition.onresult=e=>{let t=e.results[0][0].transcript.toLowerCase();if(t.includes("jarvis")){let q=t.replace(/.*?jarvis\s*/,"").trim();if(q)run(q);else say("Yes, sir. I'm listening.")}else if(wakeOn)listenWake()};
+ recognition.onend=()=>{if(wakeOn)setTimeout(listenWake,400)};
+}
+
+$("vision").onclick=()=>$("image").click();
+$("image").onchange=e=>{
+ let f=e.target.files[0];if(!f)return;
+ let im=new Image(), reader=new FileReader();
+ reader.onload=ev=>{im.onload=()=>{let max=1280,s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);imageData=c.toDataURL("image/jpeg",.75);say("Vision image ready. Ask me what you want me to inspect.");};im.src=ev.target.result};
+ reader.readAsDataURL(f);
+};
+$("status").textContent=navigator.onLine?"ONLINE • PERSONAL CORE READY":"OFFLINE • LOCAL CORE READY";
+window.addEventListener("online",()=>$("status").textContent="ONLINE • PERSONAL CORE READY");
+window.addEventListener("offline",()=>$("status").textContent="OFFLINE • LOCAL CORE READY");
+</script>
+</body>
+</html>
