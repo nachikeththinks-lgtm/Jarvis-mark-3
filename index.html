@@ -427,6 +427,12 @@ document.getElementById("visionInput").addEventListener("change",e=>{
 
 speechSynthesis.onvoiceschanged=()=>{};
 status("ONLINE");
+ window.addEventListener("load",()=>{
+ setTimeout(()=>{
+   say("All systems online and ready, sir. JARVIS Mk III online.");
+   status("ALL SYSTEMS ONLINE");
+ },800);
+});
 </script>
 </body>
 </html>
