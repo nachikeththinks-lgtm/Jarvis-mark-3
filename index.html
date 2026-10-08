@@ -149,7 +149,9 @@ function forgetAll(){
  localStorage.removeItem(K.mem);
  localStorage.removeItem(K.name);
  localStorage.removeItem(K.pending);
- say("All personal memories and learned preferences have been cleared.");
+ localStorage.removeItem(K.ai);
+ aiHistory=[];
+ say("Personal memory cleared, sir. My stored Personal Core, memories, and conversation history have been erased.");
 }
 
 function findCategory(text){
