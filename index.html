@@ -1,160 +1,432 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JARVIS Mk III — Personal Core</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>JARVIS Mk III</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#03070c;color:#00d9ff;font-family:Arial,sans-serif;min-height:100vh;display:flex;justify-content:center;align-items:center}
-main{width:min(920px,94vw);text-align:center;padding:22px}.title{font-size:clamp(38px,8vw,76px);letter-spacing:12px;text-shadow:0 0 18px #00d9ff;margin:5px 0}.sub{opacity:.7;letter-spacing:3px}
-.reactor{width:230px;height:230px;margin:28px auto;position:relative;border:2px solid #00d9ff;border-radius:50%;box-shadow:0 0 35px #00d9ff55,inset 0 0 35px #00d9ff33;display:grid;place-items:center}
-.ring{position:absolute;border:1px solid #00d9ff99;border-radius:50%;inset:16px;animation:spin 7s linear infinite}.r2{inset:35px;animation-duration:4s;animation-direction:reverse}.r3{inset:55px;animation-duration:2.5s}
-.core{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;font-size:42px;font-weight:bold;background:#001a22;box-shadow:0 0 35px #00d9ff}
+*{box-sizing:border-box}body{margin:0;background:#05080d;color:#00d9ff;font-family:Arial,sans-serif;text-align:center;overflow-x:hidden}
+h1{font-size:42px;letter-spacing:10px;margin:18px 0 4px;text-shadow:0 0 18px #00d9ff}
+#sub{font-size:13px;letter-spacing:4px;opacity:.7}
+#status{margin:12px auto;padding:8px;border:1px solid #00d9ff;width:90%;max-width:600px;box-shadow:0 0 12px #00d9ff55}
+#reactor{width:230px;height:230px;margin:25px auto;position:relative;display:flex;align-items:center;justify-content:center}
+.ring{position:absolute;border:2px solid #00d9ff;border-radius:50%;box-shadow:0 0 15px #00d9ff88}
+.r1{width:230px;height:230px;animation:spin 7s linear infinite}
+.r2{width:185px;height:185px;animation:spin 4s linear reverse infinite}
+.r3{width:140px;height:140px;animation:spin 2s linear infinite}
+#orb{width:80px;height:80px;border-radius:50%;background:#00d9ff;color:#00151b;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:bold;box-shadow:0 0 35px #00d9ff;z-index:2}
 @keyframes spin{to{transform:rotate(360deg)}}
-button{background:#00151d;color:#00d9ff;border:1px solid #00d9ff;border-radius:8px;padding:12px 18px;margin:5px;cursor:pointer;box-shadow:0 0 12px #00d9ff33}button:hover{box-shadow:0 0 20px #00d9ff88}
-#out{min-height:60px;margin:15px auto;padding:14px;border:1px solid #00d9ff55;border-radius:10px;background:#001019;text-align:left}
-.panel{margin-top:14px;padding:15px;border:1px solid #00d9ff44;border-radius:10px;text-align:left}.panel h3{margin-top:0}
-input,textarea{width:100%;background:#02080d;color:#bff8ff;border:1px solid #00d9ff55;border-radius:7px;padding:10px;margin:5px 0}textarea{min-height:80px}
-small{opacity:.65}.hidden{display:none}.status{font-size:13px;opacity:.75}
+button{background:#06131a;color:#00d9ff;border:1px solid #00d9ff;padding:11px 16px;margin:5px;border-radius:7px;font-weight:bold;box-shadow:0 0 8px #00d9ff55}
+button:active{transform:scale(.97)}
+#output{width:92%;max-width:700px;min-height:90px;margin:15px auto;padding:14px;border:1px solid #00d9ff44;text-align:left;white-space:pre-wrap}
+#history{width:92%;max-width:700px;margin:auto;text-align:left;font-size:12px;opacity:.75}
+input[type=file]{display:none}
+.core{width:92%;max-width:700px;margin:15px auto;border:1px solid #00d9ff44;padding:12px;text-align:left}
+.core h2{margin:3px 0 12px;font-size:18px}
+.coreRow{padding:5px 0;border-bottom:1px solid #00d9ff18}
+.on{color:#40ff9c}.off{color:#ff6677}
+@media(max-width:500px){h1{font-size:31px;letter-spacing:7px}#reactor{transform:scale(.85);margin:5px auto 0}}
 </style>
 </head>
 <body>
-<main>
-<div class="sub">PERSONAL INTELLIGENCE SYSTEM</div>
-<div class="title">JARVIS</div>
-<div class="sub">MK III • PERSONAL CORE</div>
-<div class="reactor"><div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div><div class="core">J</div></div>
+<h1>JARVIS</h1>
+<div id="sub">MARK III • PERSONAL INTELLIGENCE SYSTEM</div>
+<div id="status">SYSTEM STANDBY</div>
 
-<button id="activate">🎙️ ACTIVATE</button>
-<button id="wake">👂 WAKE WORD</button>
-<button id="vision">📷 VISION</button>
-<button id="memories">🧠 MEMORY</button>
-<button id="profile">👤 PERSONAL CORE</button>
-<input id="image" type="file" accept="image/*" hidden>
+<div id="reactor">
+<div class="ring r1"></div>
+<div class="ring r2"></div>
+<div class="ring r3"></div>
+<div id="orb">J</div>
+</div>
 
-<div id="out">SYSTEM STANDBY</div>
-<div class="status" id="status">Initializing personal core…</div>
+<button onclick="activate()">🎙️ ACTIVATE</button>
+<button onclick="wake()">🟢 WAKE WORD</button>
+<button onclick="document.getElementById('visionInput').click()">📷 VISION</button>
+<button onclick="showCore()">🧠 PERSONAL CORE</button>
+<input id="visionInput" type="file" accept="image/*">
 
-<section id="profilePanel" class="panel hidden">
-<h3>👤 Your Personal Core</h3>
-<small>This stays in this browser unless you send it to your AI backend.</small>
-<input id="pName" placeholder="What should JARVIS call you?">
-<input id="pStyle" placeholder="How should JARVIS speak to you? e.g. concise, friendly, technical">
-<textarea id="pAbout" placeholder="Things JARVIS should know about you, your interests, projects, goals, preferences…"></textarea>
-<textarea id="pProject" placeholder="Current project context — e.g. Mk III features, what is working, what you want next"></textarea>
-<button id="saveProfile">SAVE PERSONAL CORE</button>
-<button id="clearProfile">CLEAR PROFILE</button>
-</section>
+<div id="output">JARVIS online and ready.</div>
+<div id="history"></div>
 
-<section id="memoryPanel" class="panel hidden">
-<h3>🧠 Long-Term Memory</h3>
-<input id="memoryInput" placeholder="Tell JARVIS something to remember">
-<button id="saveMemory">REMEMBER</button>
-<button id="showMemory">SHOW MEMORIES</button>
-<button id="clearMemory">CLEAR MEMORIES</button>
-<div id="memoryList"></div>
-</section>
-</main>
+<div class="core">
+<h2>🧠 LEARNING BRAIN</h2>
+<div id="learningStatus"></div>
+</div>
 
 <script>
 const API="https://jarvis-backend-phi-bay.vercel.app/api/chat";
-const $=id=>document.getElementById(id);
-const say=t=>{ $("out").textContent=t; try{speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="en-GB";u.rate=.84;u.pitch=.70;speechSynthesis.speak(u)}catch(e){} };
-const profileKey="jarvis_mk3_personal_core",memKey="jarvis_mk3_personal_memories",histKey="jarvis_mk3_ai_history";
-let profile=JSON.parse(localStorage.getItem(profileKey)||"{}");
-let memories=JSON.parse(localStorage.getItem(memKey)||"[]");
-let history=JSON.parse(localStorage.getItem(histKey)||"[]");
-let imageData=null;
+const K={
+name:"jarvis_mk3_name",
+mem:"jarvis_mk3_memories",
+ai:"jarvis_mk3_ai_history",
+learn:"jarvis_mk3_learning",
+pending:"jarvis_mk3_pending",
+core:"jarvis_mk3_personal_core"
+};
 
-function save(){localStorage.setItem(profileKey,JSON.stringify(profile));localStorage.setItem(memKey,JSON.stringify(memories));localStorage.setItem(histKey,JSON.stringify(history))}
-function context(){
- return `PERSONAL CORE:
-Name: ${profile.name||"not set"}
-Communication style: ${profile.style||"natural"}
-About user: ${profile.about||"not set"}
-Current project: ${profile.project||"JARVIS Mk III"}
-Long-term memories: ${memories.join(" | ")||"none"}
+const categories={
+name:"Name",
+address:"How I like to be addressed",
+style:"Communication style",
+length:"Answer length preference",
+interests:"Interests",
+hobbies:"Hobbies",
+school:"School / learning preferences",
+subjects:"Subjects I like",
+working:"Subjects I'm working on",
+goals:"Goals",
+ambitions:"Long-term ambitions",
+projects:"Current projects",
+coding:"Coding preferences",
+tech:"Technology interests",
+travel:"Travel preferences",
+food:"Food preferences",
+entertainment:"Entertainment preferences",
+topics:"Favorite topics",
+dislikes:"Things I dislike",
+routines:"Important routines",
+productivity:"Productivity preferences",
+study:"Study preferences",
+personality:"JARVIS personality preference",
+behavior:"JARVIS behavior preferences",
+other:"Other useful personal information"
+};
 
-IMPORTANT: Treat this as user-provided personal context. Use it naturally, don't invent facts, and don't claim to remember something that isn't here.`;
+function get(k,d=[]){
+ try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}
 }
-function openPanel(id){$(id).classList.toggle("hidden")}
-$("profile").onclick=()=>{openPanel("profilePanel");$("pName").value=profile.name||"";$("pStyle").value=profile.style||"";$("pAbout").value=profile.about||"";$("pProject").value=profile.project||""};
-$("memories").onclick=()=>openPanel("memoryPanel");
-$("saveProfile").onclick=()=>{profile={name:$("pName").value.trim(),style:$("pStyle").value.trim(),about:$("pAbout").value.trim(),project:$("pProject").value.trim()};save();say("Personal core updated, sir.");};
-$("clearProfile").onclick=()=>{profile={};save();say("Personal core cleared.");};
-$("saveMemory").onclick=()=>{let x=$("memoryInput").value.trim();if(x){memories.push(x);memories=memories.slice(-100);save();$("memoryInput").value="";say("I will keep that in your local memory.");}};
-$("showMemory").onclick=()=>{$("memoryList").innerHTML=memories.length?memories.map((m,i)=>`<div>${i+1}. ${m}</div>`).join(""):"No memories stored."};
-$("clearMemory").onclick=()=>{memories=[];save();$("memoryList").textContent="Memory cleared."};
+function set(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function say(t){
+ output.textContent=t;
+ const u=new SpeechSynthesisUtterance(t);
+ let vs=speechSynthesis.getVoices();
+ let v=vs.find(x=>x.lang==="en-GB")||vs.find(x=>x.lang.startsWith("en"));
+ if(v)u.voice=v;
+ u.rate=.84;u.pitch=.70;
+ speechSynthesis.cancel();speechSynthesis.speak(u);
+}
+function log(t){
+ history.innerHTML="<div>"+t.replace(/[<>]/g,"")+"</div>"+history.innerHTML;
+}
+function status(t){document.getElementById("status").textContent=t}
+function learningOn(){return localStorage.getItem(K.learn)!=="false"}
+function updateLearning(){
+ learningStatus.innerHTML=learningOn()
+ ?'<span class="on">● LEARNING BRAIN: ON</span>'
+ :'<span class="off">● LEARNING BRAIN: OFF</span>';
+}
+updateLearning();
 
-async function askAI(text,img=null){
- $("status").textContent="THINKING…";
- let msgs=[{role:"system",content:`You are JARVIS Mk III, a personal assistant. Be intelligent, warm, concise, and natural. Address the user as sir when appropriate, but don't overdo it. Use the PERSONAL CORE below to personalize responses. Never invent personal facts. If the user asks about the JARVIS project, use the project context. You may say you cannot perform an action if the browser/backend cannot actually do it.
-${context()}`}];
- msgs.push(...history.slice(-10));
- msgs.push({role:"user",content:text});
+function core(){
+ let c=get(K.core,{});
+ Object.keys(categories).forEach(k=>{if(!(k in c))c[k]=""});
+ return c;
+}
+function saveCore(c){set(K.core,c)}
+
+function showCore(){
+ let c=core(),s="PERSONAL CORE\n\n";
+ Object.keys(categories).forEach(k=>{
+   s+=categories[k]+": "+(c[k]||"Not learned yet")+"\n";
+ });
+ s+="\nLearning Brain: "+(learningOn()?"ON":"OFF");
+ say(s);
+}
+
+function learned(){
+ let c=core(),a=[];
+ Object.keys(categories).forEach(k=>{
+   if(c[k])a.push(categories[k]+": "+c[k]);
+ });
+ let m=get(K.mem,[]);
+ if(m.length)a.push("Other memories: "+m.join("; "));
+ return a;
+}
+
+function forgetAll(){
+ localStorage.removeItem(K.core);
+ localStorage.removeItem(K.mem);
+ localStorage.removeItem(K.name);
+ localStorage.removeItem(K.pending);
+ say("All personal memories and learned preferences have been cleared.");
+}
+
+function findCategory(text){
+ let t=text.toLowerCase();
+ const aliases={
+ name:["name"],
+ address:["call me","address me","how you call me"],
+ style:["communication style","talk to me","speak to me"],
+ length:["answer length","short answers","long answers"],
+ interests:["interests"],
+ hobbies:["hobbies"],
+ school:["school","learning preferences"],
+ subjects:["subjects i like","favorite subjects"],
+ working:["working on","subjects i'm working"],
+ goals:["goals"],
+ ambitions:["ambitions","long term","long-term"],
+ projects:["projects","current project"],
+ coding:["coding preferences"],
+ tech:["technology interests","tech interests"],
+ travel:["travel preferences"],
+ food:["food preferences"],
+ entertainment:["entertainment"],
+ topics:["favorite topics"],
+ dislikes:["dislike","things i dislike"],
+ routines:["routines"],
+ productivity:["productivity"],
+ study:["study preferences"],
+ personality:["jarvis personality"],
+ behavior:["jarvis behavior"],
+ other:["other information"]
+ };
+ for(let k in aliases)if(aliases[k].some(x=>t.includes(x)))return k;
+ return null;
+}
+
+function setCategory(text){
+ let m=text.match(/^(?:set|change|update)\s+(.+?)\s+(?:to|as)\s+(.+)$/i);
+ if(!m)return false;
+ let k=findCategory(m[1]);
+ if(!k)return false;
+ let c=core();c[k]=m[2].trim();saveCore(c);
+ if(k==="name")localStorage.setItem(K.name,m[2].trim());
+ say("Personal Core updated. I will remember that.");
+ return true;
+}
+
+function forgetCategory(text){
+ let m=text.match(/^(?:forget|clear|remove)\s+(?:my\s+)?(.+)$/i);
+ if(!m)return false;
+ let k=findCategory(m[1]);
+ if(!k)return false;
+ let c=core();c[k]="";saveCore(c);
+ if(k==="name")localStorage.removeItem(K.name);
+ say("That Personal Core entry has been forgotten.");
+ return true;
+}
+
+function rememberExplicit(text){
+ let m=text.match(/^remember(?:\s+that)?\s+(.+)/i);
+ if(!m)return false;
+ let a=get(K.mem,[]);
+ a.push(m[1].trim());set(K.mem,a);
+ say("Understood. I will remember that.");
+ return true;
+}
+
+function learningRequest(text){
+ if(!learningOn())return false;
+ if(!/^(i am|i'm|i like|i love|i prefer|i hate|i dislike|my favorite|my goal|i want to|i enjoy|i usually|i often|i don't like|i do not like)/i.test(text))return false;
+ let p=get(K.pending,null);
+ if(p)return false;
+ set(K.pending,{text});
+ say("I noticed that may be useful to remember. Should I save it to my Personal Core? Say yes or no.");
+ return true;
+}
+
+function handleLearningAnswer(text){
+ let p=get(K.pending,null);
+ if(!p)return false;
+ if(/^(yes|yeah|yep|sure|save it|remember it)$/i.test(text.trim())){
+   let c=core(),t=p.text;
+   let k=null;
+   if(/i like|i love|i enjoy/i.test(t))k="interests";
+   else if(/i prefer/i.test(t))k="style";
+   else if(/my goal|i want to/i.test(t))k="goals";
+   else if(/favorite/i.test(t))k="topics";
+   else k="other";
+   c[k]=c[k]?c[k]+"; "+t:t;
+   saveCore(c);localStorage.removeItem(K.pending);
+   say("Saved to my Personal Core.");
+   return true;
+ }
+ if(/^(no|nope|don't|do not)$/i.test(text.trim())){
+   localStorage.removeItem(K.pending);
+   say("Understood. I won't save it.");
+   return true;
+ }
+ say("Please say yes or no.");
+ return true;
+}
+
+async function weather(){
  try{
-  let r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:msgs,image:img})});
-  let d=await r.json(); if(!r.ok) throw Error(d.error||"Backend error");
-  let reply=d.reply||"I didn't receive a response.";
-  history.push({role:"user",content:text},{role:"assistant",content:reply});history=history.slice(-20);save();say(reply);
- }catch(e){say("I couldn't reach my AI brain right now, sir. The local systems are still available.");$("status").textContent="AI OFFLINE";}
- $("status").textContent="READY";
+   if(!navigator.geolocation){say("Location access is unavailable.");return}
+   status("GETTING WEATHER...");
+   navigator.geolocation.getCurrentPosition(async p=>{
+     const u=`https://api.open-meteo.com/v1/forecast?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code`;
+     const r=await fetch(u),d=await r.json(),x=d.current;
+     say(`Current temperature is ${x.temperature_2m} degrees. Humidity is ${x.relative_humidity_2m} percent. Wind speed is ${x.wind_speed_10m} kilometers per hour.`);
+     status("ONLINE");
+   },()=>say("I need location permission to check the weather."));
+ }catch{say("I couldn't retrieve the weather.");}
 }
 
 function calc(t){
+ let e=t.toLowerCase()
+ .replace(/what is|calculate|please calculate|equals|equal to/g,"")
+ .replace(/square root of/g,"Math.sqrt(")
+ .replace(/divided by/g,"/")
+ .replace(/multiplied by|times/g,"*")
+ .replace(/plus/g,"+")
+ .replace(/minus/g,"-")
+ .replace(/percent of/g,"/100*")
+ .replace(/\bx squared\b/g,"**2")
+ .replace(/\bx cubed\b/g,"**3")
+ .replace(/[^0-9+\-*/().% Mathsqrt]/g,"");
  try{
-  let s=t.toLowerCase().replace(/square root of/g,"sqrt ").replace(/divided by/g,"/").replace(/multiplied by|times/g,"*").replace(/plus/g,"+").replace(/minus/g,"-").replace(/sqrt\s+([0-9.]+)/g,"Math.sqrt($1)").replace(/\^/g,"**").replace(/[^0-9+\-*/().%\s*]/g,"");
-  if(!s||!/^[0-9+\-*/().%\s*]+$/.test(s.replace(/Math.sqrt\([^)]*\)/g,""))) return null;
-  let r=Function('"use strict";return ('+s.replace(/%/g,"/100")+')')();
-  return Number.isFinite(r)?String(r):null;
- }catch{return null}
+   if(e.includes("Math.sqrt("))e+=")";
+   let r=Function('"use strict";return ('+e+')')();
+   if(Number.isFinite(r)){say(String(r));return true}
+ }catch{}
+ return false;
 }
+
+function timer(t){
+ let m=t.match(/(?:timer|remind me)\s+(?:for\s+)?(\d+)\s*(second|seconds|minute|minutes|hour|hours)/i);
+ if(!m)return false;
+ let n=+m[1],u=m[2].toLowerCase();
+ let ms=n*(u.startsWith("second")?1000:u.startsWith("minute")?60000:3600000);
+ say(`Timer set for ${n} ${u}.`);
+ setTimeout(()=>say("Sir, your timer is finished."),ms);
+ return true;
+}
+
 function localCommand(t){
- let l=t.toLowerCase().trim(), c=calc(l);
- if(c!==null)return "The answer is "+c;
- if(/^(hi|hello|hey)\b/.test(l))return profile.name?`Good to hear from you, ${profile.name}.`:"Good to hear from you, sir.";
- if(l.includes("what is my name"))return profile.name?`You asked me to call you ${profile.name}.`:"You haven't set your name yet.";
- if(l.includes("what do you remember"))return memories.length?memories.join("; "):"I don't have any stored memories yet.";
- if(l.includes("what can you do"))return "I can talk, remember information locally, calculate, search the web, use vision, and use my AI brain.";
- if(l.includes("what time"))return new Date().toLocaleTimeString();
- if(l.includes("what date")||l==="date")return new Date().toLocaleDateString();
- if(l.includes("tell me a joke"))return ["Why did the computer get cold? It left its Windows open.","Why was the math book sad? It had too many problems."][Math.floor(Math.random()*2)];
- if(l.startsWith("search google for ")){location.href="https://www.google.com/search?q="+encodeURIComponent(l.slice(18));return "Opening Google."}
- if(l.startsWith("search youtube for ")){location.href="https://www.youtube.com/results?search_query="+encodeURIComponent(l.slice(19));return "Opening YouTube."}
- if(l.startsWith("remember that ")){let x=t.slice(14).trim();memories.push(x);save();return "Stored in local memory."}
- return null;
-}
-async function run(t){let x=localCommand(t);if(x){say(x);return}await askAI(t,imageData);imageData=null}
+ let x=t.toLowerCase().trim();
 
-let recognition;
-if("webkitSpeechRecognition"in window||"SpeechRecognition"in window){
+ if(handleLearningAnswer(t))return true;
+ if(setCategory(t))return true;
+ if(forgetCategory(t))return true;
+ if(rememberExplicit(t))return true;
+
+ if(x==="show my personal core"||x==="open personal core"||x==="show my core"){showCore();return true}
+ if(x==="what have you learned about me"||x==="what do you know about me"){
+   let a=learned();
+   say(a.length?a.join("\n"):"I haven't learned anything personal yet.");
+   return true;
+ }
+ if(x==="forget everything"||x==="forget everything about me"){forgetAll();return true}
+ if(x==="learning on"||x==="turn learning on"||x==="enable learning"){
+   localStorage.setItem(K.learn,"true");updateLearning();say("Learning Brain enabled.");return true;
+ }
+ if(x==="learning off"||x==="turn learning off"||x==="disable learning"){
+   localStorage.setItem(K.learn,"false");updateLearning();say("Learning Brain disabled.");return true;
+ }
+
+ if(x.includes("weather")){weather();return true}
+ if(x==="time"||x.includes("what time")){say(new Date().toLocaleTimeString());return true}
+ if(x.includes("date")||x.includes("today")){say(new Date().toLocaleDateString());return true}
+ if(x.includes("joke")){
+   const j=["Why did the computer get cold? It left its Windows open.","Why was the math book sad? It had too many problems.","Why did the bicycle fall over? It was two-tired.","Why don't scientists trust atoms? They make up everything."];
+   say(j[Math.floor(Math.random()*j.length)]);return true
+ }
+ if(timer(t))return true;
+ if(/calculate|what is|square root|plus|minus|times|divided by|percent of|squared|cubed/.test(x)&&calc(t))return true;
+
+ let m=x.match(/(?:search|google)\s+(?:google\s+)?(?:for\s+)?(.+)/);
+ if(m){open("https://www.google.com/search?q="+encodeURIComponent(m[1]));say("Searching Google.");return true}
+ m=x.match(/search youtube for (.+)/);
+ if(m){open("https://www.youtube.com/results?search_query="+encodeURIComponent(m[1]));say("Searching YouTube.");return true}
+ m=x.match(/(?:search spotify for|play) (.+?)(?: on spotify)?$/);
+ if(m){open("https://open.spotify.com/search/"+encodeURIComponent(m[1]));say("Opening Spotify.");return true}
+
+ if(/^(hello|hi|hey)\b/.test(x)){say("Good day, sir. JARVIS online.");return true}
+ if(x.includes("thank")){say("You're welcome, sir.");return true}
+ if(x.includes("are you there")||x.includes("are you online")){say("Always online, sir.");return true}
+ if(x.includes("what can you do")){say("I can talk, calculate, search, check weather, use vision, remember information, learn your preferences with permission, and use my AI brain.");return true}
+
+ if(learningRequest(t))return true;
+ return false;
+}
+
+let aiHistory=get(K.ai,[]);
+let visionData=null;
+
+async function ai(t){
+ status("THINKING...");
+ let msgs=[
+ {role:"system",content:`You are JARVIS Mk III, a personal AI assistant. Speak naturally and intelligently. Call the user sir when appropriate. Be concise unless detail is requested. You may use the user's Personal Core context when supplied. Never claim to physically perform actions you cannot perform.`},
+ ...aiHistory.slice(-10),
+ {role:"user",content:t}
+ ];
+ let c=core(),personal=Object.entries(c).filter(([k,v])=>v).map(([k,v])=>categories[k]+": "+v).join("\n");
+ if(personal)msgs[0].content+="\nPersonal Core:\n"+personal;
+
+ try{
+   let body={messages:msgs};
+   if(visionData)body.image=visionData;
+   let r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+   let d=await r.json();
+   if(!r.ok)throw Error(d.error||"Backend error");
+   let reply=d.reply||"I couldn't generate a response.";
+   aiHistory.push({role:"user",content:t});
+   aiHistory.push({role:"assistant",content:reply});
+   aiHistory=aiHistory.slice(-20);
+   set(K.ai,aiHistory);
+   visionData=null;
+   say(reply);
+ }catch(e){
+   say("I couldn't reach my AI brain right now.");
+ }
+ status("ONLINE");
+}
+
+async function command(t){
+ t=t.trim();
+ if(!t)return;
+ log("YOU: "+t);
+ if(localCommand(t))return;
+ await ai(t);
+}
+
+function activate(){
+ status("LISTENING...");
  const R=window.SpeechRecognition||window.webkitSpeechRecognition;
- recognition=new R();recognition.lang="en-IN";recognition.interimResults=false;
- recognition.onstart=()=>{$("status").textContent="LISTENING…"};
- recognition.onresult=e=>{let t=e.results[0][0].transcript;say("I heard: "+t);run(t)};
- recognition.onerror=()=>{$("status").textContent="READY"};
- recognition.onend=()=>{$("status").textContent="READY"};
-}
-$("activate").onclick=()=>{if(recognition)recognition.start();else say("Speech recognition is not supported in this browser.")};
-let wakeOn=false;
-$("wake").onclick=()=>{wakeOn=!wakeOn;$("wake").textContent=wakeOn?"🛑 WAKE ACTIVE":"👂 WAKE WORD";if(!recognition||!wakeOn)return;say("Wake word mode activated.");listenWake()};
-function listenWake(){
- if(!wakeOn)return;
- try{recognition.start()}catch{}
- recognition.onresult=e=>{let t=e.results[0][0].transcript.toLowerCase();if(t.includes("jarvis")){let q=t.replace(/.*?jarvis\s*/,"").trim();if(q)run(q);else say("Yes, sir. I'm listening.")}else if(wakeOn)listenWake()};
- recognition.onend=()=>{if(wakeOn)setTimeout(listenWake,400)};
+ if(!R){say("Voice recognition is not supported here.");return}
+ const r=new R();r.lang="en-IN";r.interimResults=false;r.start();
+ r.onresult=e=>command(e.results[0][0].transcript);
+ r.onerror=()=>status("ONLINE");
 }
 
-$("vision").onclick=()=>$("image").click();
-$("image").onchange=e=>{
- let f=e.target.files[0];if(!f)return;
- let im=new Image(), reader=new FileReader();
- reader.onload=ev=>{im.onload=()=>{let max=1280,s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);imageData=c.toDataURL("image/jpeg",.75);say("Vision image ready. Ask me what you want me to inspect.");};im.src=ev.target.result};
+function wake(){
+ status("WAKE WORD ACTIVE");
+ const R=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!R){say("Wake word recognition is unavailable.");return}
+ const r=new R();r.lang="en-IN";r.continuous=true;r.interimResults=false;r.start();
+ r.onresult=e=>{
+   let t=e.results[e.results.length-1][0].transcript.trim();
+   log("HEARD: "+t);
+   if(t.toLowerCase().includes("jarvis")){
+     let q=t.replace(/jarvis/i,"").trim();
+     if(q)command(q);else say("Yes, sir. I'm listening.");
+   }
+ };
+ r.onerror=()=>status("ONLINE");
+}
+
+document.getElementById("visionInput").addEventListener("change",e=>{
+ const f=e.target.files[0];if(!f)return;
+ const reader=new FileReader();
+ reader.onload=()=>{
+   const img=new Image();
+   img.onload=()=>{
+     const c=document.createElement("canvas"),max=1200;
+     let w=img.width,h=img.height;
+     if(w>max||h>max){let s=Math.min(max/w,max/h);w*=s;h*=s}
+     c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
+     visionData=c.toDataURL("image/jpeg",.75);
+     say("Vision image ready, sir. Ask me what you want me to see.");
+   };
+   img.src=reader.result;
+ };
  reader.readAsDataURL(f);
-};
-$("status").textContent=navigator.onLine?"ONLINE • PERSONAL CORE READY":"OFFLINE • LOCAL CORE READY";
-window.addEventListener("online",()=>$("status").textContent="ONLINE • PERSONAL CORE READY");
-window.addEventListener("offline",()=>$("status").textContent="OFFLINE • LOCAL CORE READY");
+});
+
+speechSynthesis.onvoiceschanged=()=>{};
+status("ONLINE");
 </script>
 </body>
 </html>
